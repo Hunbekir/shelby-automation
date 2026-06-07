@@ -31,6 +31,7 @@ PROJECT_ROOT = os.path.dirname(os.path.dirname(__file__))
 sys.path.insert(0, PROJECT_ROOT)
 
 from utils.toggle import is_system_active, set_system_active, ensure_config
+from utils.post_history import read_all as read_history, clear as clear_history
 
 # ── Flask App Setup ───────────────────────────────────────────
 app = Flask(__name__, template_folder="templates")
@@ -62,6 +63,39 @@ def get_status():
     active = is_system_active()
     logger.info(f"Status check — SYSTEM_ACTIVE: {active}")
     return jsonify({"SYSTEM_ACTIVE": active})
+
+
+@app.route("/history")
+def history():
+    """
+    Shows the bot's full post + reply history for human auditing.
+
+    Pulled from post_history.json on the volume. Newest entries first so the
+    most recent activity is at the top.
+    """
+    entries = list(reversed(read_history()))
+    post_count = sum(1 for e in entries if e.get("type") == "post")
+    reply_count = sum(1 for e in entries if e.get("type") == "reply")
+    return render_template(
+        "history.html",
+        entries=entries,
+        total=len(entries),
+        post_count=post_count,
+        reply_count=reply_count,
+    )
+
+
+@app.route("/api/history", methods=["GET"])
+def api_history():
+    """Raw JSON dump of the history (newest first)."""
+    return jsonify({"entries": list(reversed(read_history()))})
+
+
+@app.route("/api/history/clear", methods=["POST"])
+def api_history_clear():
+    """Wipes the audit log. Optional, kept available for the dashboard."""
+    removed = clear_history()
+    return jsonify({"success": True, "removed": removed})
 
 
 @app.route("/api/toggle", methods=["POST"])

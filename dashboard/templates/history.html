@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Shelby — Post History</title>
+  <meta name="description" content="Audit log of every post and reply AI Shelby has made on your behalf." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+
+  <style>
+    :root {
+      --clr-bg:          #0a0b0f;
+      --clr-surface:     #13151c;
+      --clr-surface-2:   #1c1f2a;
+      --clr-border:      rgba(255,255,255,0.07);
+      --clr-text:        #f0f0f5;
+      --clr-text-muted:  #7a7f96;
+      --clr-accent:      #f5a623;
+      --clr-post:        #f5a623;
+      --clr-reply:       #4ec9b0;
+      --radius-card:  20px;
+      --radius-badge: 100px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background: var(--clr-bg);
+      color: var(--clr-text);
+    }
+
+    body {
+      min-height: 100vh;
+      padding: 32px 24px 64px;
+      max-width: 880px;
+      margin: 0 auto;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 80% 60% at 50% -10%, rgba(245,166,35,0.10) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 40% at 80% 100%, rgba(78,201,176,0.05) 0%, transparent 60%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .container { position: relative; z-index: 1; }
+
+    /* ── Header ────────────────────────────────────────── */
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px;
+      background: var(--clr-surface);
+      border: 1px solid var(--clr-border);
+      border-radius: var(--radius-badge);
+      color: var(--clr-text);
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 500;
+      transition: all 0.15s ease;
+    }
+    .back-link:hover {
+      background: var(--clr-surface-2);
+      border-color: rgba(245,166,35,0.3);
+    }
+
+    h1 {
+      font-size: 28px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin-bottom: 8px;
+    }
+
+    .subtitle {
+      color: var(--clr-text-muted);
+      font-size: 14px;
+      margin-bottom: 24px;
+    }
+
+    /* ── Stats bar ─────────────────────────────────────── */
+    .stats {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 32px;
+      flex-wrap: wrap;
+    }
+    .stat {
+      flex: 1;
+      min-width: 120px;
+      background: var(--clr-surface);
+      border: 1px solid var(--clr-border);
+      border-radius: var(--radius-card);
+      padding: 16px 20px;
+    }
+    .stat-label {
+      font-size: 11px;
+      color: var(--clr-text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 4px;
+    }
+    .stat-value {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--clr-text);
+    }
+    .stat.posts .stat-value { color: var(--clr-post); }
+    .stat.replies .stat-value { color: var(--clr-reply); }
+
+    /* ── Entries ───────────────────────────────────────── */
+    .entries {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .entry {
+      background: var(--clr-surface);
+      border: 1px solid var(--clr-border);
+      border-radius: var(--radius-card);
+      padding: 20px 24px;
+      position: relative;
+    }
+    .entry-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+    }
+    .type-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 12px;
+      border-radius: var(--radius-badge);
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+    .type-badge.post {
+      background: rgba(245,166,35,0.12);
+      color: var(--clr-post);
+      border: 1px solid rgba(245,166,35,0.25);
+    }
+    .type-badge.reply {
+      background: rgba(78,201,176,0.12);
+      color: var(--clr-reply);
+      border: 1px solid rgba(78,201,176,0.25);
+    }
+    .timestamp {
+      font-size: 12px;
+      color: var(--clr-text-muted);
+      font-feature-settings: 'tnum';
+    }
+
+    .entry-title {
+      font-size: 15px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: var(--clr-text);
+      line-height: 1.4;
+    }
+    .entry-body {
+      font-size: 14px;
+      color: var(--clr-text);
+      line-height: 1.55;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      opacity: 0.9;
+    }
+    .entry-meta {
+      margin-top: 12px;
+      font-size: 12px;
+      color: var(--clr-text-muted);
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .entry-meta a {
+      color: var(--clr-accent);
+      text-decoration: none;
+      font-weight: 500;
+    }
+    .entry-meta a:hover {
+      text-decoration: underline;
+    }
+    code {
+      font-family: 'JetBrains Mono', 'Consolas', monospace;
+      font-size: 11px;
+      background: rgba(255,255,255,0.05);
+      padding: 2px 6px;
+      border-radius: 4px;
+      color: var(--clr-text-muted);
+    }
+
+    /* ── Empty state ───────────────────────────────────── */
+    .empty {
+      background: var(--clr-surface);
+      border: 1px dashed var(--clr-border);
+      border-radius: var(--radius-card);
+      padding: 48px 32px;
+      text-align: center;
+      color: var(--clr-text-muted);
+    }
+    .empty-icon {
+      font-size: 40px;
+      margin-bottom: 12px;
+    }
+    .empty-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--clr-text);
+      margin-bottom: 8px;
+    }
+
+    /* ── Footer ────────────────────────────────────────── */
+    footer {
+      margin-top: 48px;
+      text-align: center;
+      color: var(--clr-text-muted);
+      font-size: 12px;
+    }
+    footer a {
+      color: var(--clr-accent);
+      text-decoration: none;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+
+    <header>
+      <a href="/" class="back-link">← Back to control panel</a>
+    </header>
+
+    <h1>Post History</h1>
+    <p class="subtitle">Every post and reply AI Shelby has made on your behalf, newest first.</p>
+
+    <!-- Stats -->
+    <div class="stats">
+      <div class="stat">
+        <div class="stat-label">Total</div>
+        <div class="stat-value">{{ total }}</div>
+      </div>
+      <div class="stat posts">
+        <div class="stat-label">Posts</div>
+        <div class="stat-value">{{ post_count }}</div>
+      </div>
+      <div class="stat replies">
+        <div class="stat-label">Replies</div>
+        <div class="stat-value">{{ reply_count }}</div>
+      </div>
+    </div>
+
+    {% if entries %}
+      <div class="entries">
+        {% for e in entries %}
+          <article class="entry">
+            <div class="entry-header">
+              {% if e.type == 'post' %}
+                <span class="type-badge post">🌅 Post</span>
+              {% else %}
+                <span class="type-badge reply">💬 Reply</span>
+              {% endif %}
+              <span class="timestamp">{{ e.timestamp }} UTC</span>
+            </div>
+
+            {% if e.type == 'post' %}
+              <div class="entry-title">{{ e.title }}</div>
+              <div class="entry-body">{{ e.content }}</div>
+            {% else %}
+              <div class="entry-body">{{ e.content }}</div>
+            {% endif %}
+
+            <div class="entry-meta">
+              {% if e.url %}
+                <a href="{{ e.url }}" target="_blank" rel="noopener">View on Skool ↗</a>
+              {% endif %}
+              {% if e.type == 'post' and e.post_id %}
+                <span>id: <code>{{ e.post_id[:12] }}…</code></span>
+              {% elif e.type == 'reply' %}
+                {% if e.reply_id %}<span>reply id: <code>{{ e.reply_id[:12] }}…</code></span>{% endif %}
+                {% if e.parent_id %}<span>parent: <code>{{ e.parent_id[:12] }}…</code></span>{% endif %}
+              {% endif %}
+            </div>
+          </article>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="empty">
+        <div class="empty-icon">📝</div>
+        <div class="empty-title">No activity yet</div>
+        <div>The bot will log every post and reply here as it happens.</div>
+      </div>
+    {% endif %}
+
+    <footer>
+      AI Shelby — The Class Economy System<br>
+      <a href="https://skool.com/class-economy" target="_blank" rel="noopener">skool.com/class-economy</a>
+    </footer>
+
+  </div>
+</body>
+</html>

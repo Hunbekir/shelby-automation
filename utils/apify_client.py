@@ -213,12 +213,23 @@ def list_comments(post_id: str) -> list:
     return result if result is not None else []
 
 
+def _created_id_and_url(result) -> tuple[str | None, str | None]:
+    """Pulls the created object's id and url out of a successful write result."""
+    if not isinstance(result, list) or not result:
+        return None, None
+    first = result[0]
+    if not isinstance(first, dict):
+        return None, None
+    return first.get("id"), first.get("url")
+
+
 def create_post(title: str, content: str, label_id: str | None = None) -> bool:
     """
     Creates a new top-level post in the class-economy community.
 
     Skool posts require a title AND content; the AI generates the content and
     the caller derives a short title from it (see daily_post / weekly_events).
+    Successful posts are logged to post_history for the dashboard's audit view.
     """
     payload = {
         "action": "posts:create",
@@ -230,7 +241,12 @@ def create_post(title: str, content: str, label_id: str | None = None) -> bool:
         },
     }
     result = _run_actor(payload)
-    return _write_succeeded(result, action="posts:create")
+    success = _write_succeeded(result, action="posts:create")
+    if success:
+        post_id, url = _created_id_and_url(result)
+        from utils.post_history import record_post
+        record_post(title=title, content=content, post_id=post_id, url=url)
+    return success
 
 
 def create_reply(content: str, root_id: str, parent_id: str) -> bool:
@@ -239,6 +255,7 @@ def create_reply(content: str, root_id: str, parent_id: str) -> bool:
 
     `root_id` is the original post; `parent_id` is the comment being replied
     to (for a top-level comment on a post, parent_id == root_id).
+    Successful replies are logged to post_history for the dashboard's audit view.
     """
     payload = {
         "action": "posts:createComment",
@@ -250,4 +267,15 @@ def create_reply(content: str, root_id: str, parent_id: str) -> bool:
         },
     }
     result = _run_actor(payload)
-    return _write_succeeded(result, action="posts:createComment")
+    success = _write_succeeded(result, action="posts:createComment")
+    if success:
+        reply_id, url = _created_id_and_url(result)
+        from utils.post_history import record_reply
+        record_reply(
+            content=content,
+            root_id=root_id,
+            parent_id=parent_id,
+            reply_id=reply_id,
+            url=url,
+        )
+    return success

@@ -234,6 +234,7 @@ so it goes live immediately.
 | `SHELBY_USER_ID` | Shelby's Skool user ID (her `author.id`) |
 | `CONFIG_PATH` | `/data/config.json` (the mounted volume) |
 | `REPLIED_STORE_PATH` | *(optional)* defaults to `replied_comments.json` next to `config.json`. Set to a volume path (e.g. `/data/replied_comments.json`) so the duplicate-reply guard persists across redeploys. |
+| `POST_HISTORY_PATH` | *(optional)* defaults to `post_history.json` next to `config.json`. Set to a volume path (e.g. `/data/post_history.json`) so the audit log behind the dashboard's `/history` view survives redeploys. |
 | `SKOOL_POST_LABEL_ID` | *(optional)* override the default Skool category daily/weekly posts go into |
 | `PORT` | provided automatically by Railway/Render |
 
