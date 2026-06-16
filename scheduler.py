@@ -9,7 +9,7 @@ automatically and there are no twice-a-year cron edits to make.
 
 Schedules:
   daily_post.py     — every day at 7:00 AM Eastern
-  comment_reply.py  — every hour, on the hour
+  comment_reply.py  — twice daily at 12:00 PM and 10:00 PM Eastern
   weekly_events.py  — every Monday at 8:00 AM Eastern
 
 Each workflow runs as its own subprocess — exactly as it would under cron — so
@@ -76,12 +76,12 @@ def _add_jobs(scheduler) -> None:
         id="daily_post", name="Daily Morning Post",
         max_instances=1, coalesce=True, misfire_grace_time=3600,
     )
-    # Hourly comment reply — top of every hour
+    # Twice-daily comment reply — 12:00 PM and 10:00 PM Eastern
     scheduler.add_job(
         run_workflow, args=["comment_reply.py"],
-        trigger=CronTrigger(minute=0, timezone=TIMEZONE),
-        id="comment_reply", name="Hourly Comment Reply",
-        max_instances=1, coalesce=True, misfire_grace_time=600,
+        trigger=CronTrigger(hour="12,22", minute=0, timezone=TIMEZONE),
+        id="comment_reply", name="Twice-Daily Comment Reply",
+        max_instances=1, coalesce=True, misfire_grace_time=3600,
     )
     # Weekly events — Monday 8:00 AM ET
     scheduler.add_job(
